@@ -21,6 +21,9 @@ namespace TestJustCarpetAPI
         public const string customerResource = URL +"api/customer/";
         public const string flooringResource = URL + "api/flooring/";
         public const string installerResource = URL + "api/installer/";
+        public const string InstallerAppointmentsResource = URL + "api/InstallerAvailability";
+        public const string OrderResource = URL + "api/Order";
+        public const string ReviewResource = URL + "api/Review";
 
         public JustCarpetClient()
         {
@@ -161,8 +164,11 @@ namespace TestJustCarpetAPI
 
                     if (response.IsSuccessStatusCode)
                     {
+
+                        var content = await response.Content.ReadAsStringAsync();
+
                         var flooring =
-                            JsonConvert.DeserializeObject<Flooring>(await response.Content.ReadAsStringAsync());
+                            JsonConvert.DeserializeObject<Flooring>(content);
 
                         return flooring;
                     }
@@ -215,6 +221,121 @@ namespace TestJustCarpetAPI
                 return new List<Installer>();
             }
         }
+
+        public async Task<List<Appointment>> GetInstallerAppontments(int id)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    client.BaseAddress = new Uri(URL);
+
+                    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, InstallerAppointmentsResource + "?id=" + id);
+
+                    HttpResponseMessage response = await client.SendAsync(request);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+
+                        return JsonConvert.DeserializeObject<List<Appointment>>(
+                            await response.Content.ReadAsStringAsync());
+                    }
+                    else
+                    {
+                        return new List<Appointment>();
+                    }
+
+                }
+                catch (HttpRequestException e)
+                {
+                    Console.WriteLine("\nException Caught!");
+                    Console.WriteLine("Message :{0} ", e.Message);
+                }
+
+                return new List<Appointment>();
+            }
+        }
+
+        public async Task<bool> AddOrderReview(Review model)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                // Call asynchronous network methods in a try/catch block to handle exceptions
+                try
+                {
+                    client.BaseAddress = new Uri(URL);
+
+                    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, ReviewResource);
+
+                    request.Content = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
+
+                    HttpResponseMessage response = await client.SendAsync(request);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+
+                }
+                catch (HttpRequestException e)
+                {
+                    Console.WriteLine("\nException Caught!");
+                    Console.WriteLine("Message :{0} ", e.Message);
+                }
+
+                return false;
+            }
+        }
+
+        public async Task<OrderConfirmation> Neworder(CreateOrderDto model)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                // Call asynchronous network methods in a try/catch block to handle exceptions
+                try
+                {
+                    client.BaseAddress = new Uri(URL);
+
+                    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, OrderResource);
+
+                    request.Content = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
+
+                    HttpResponseMessage response = await client.SendAsync(request);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var confirmation =
+                            JsonConvert.DeserializeObject<OrderConfirmation>(await response.Content.ReadAsStringAsync());
+
+                        return confirmation;
+                    }
+                    else
+                    {
+                        return new OrderConfirmation()
+                        {
+                            OrderSucess = false
+                        };
+                    }
+
+                }
+                catch (HttpRequestException e)
+                {
+                    Console.WriteLine("\nException Caught!");
+                    Console.WriteLine("Message :{0} ", e.Message);
+                }
+
+                return new OrderConfirmation()
+                {
+                    OrderSucess = false
+                };
+            }
+        }
+
         
         #endregion
     }

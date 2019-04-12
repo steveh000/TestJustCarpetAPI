@@ -21,5 +21,7 @@ namespace TestJustCarpetAPI.Models
         public string EmailAddress { get; set; }
         [DataMember(Name = "macaddress")]
         public string MacAddress { get; set; }
+
+        public List<Order> Orders = new List<Order>();
     }
 }
