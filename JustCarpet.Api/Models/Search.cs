@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using JustCarpet.Api.Enums;
 
-namespace TestJustCarpetAPI.Models
+namespace JustCarpet.Api.Models
 {
     public class Search
     {
         public bool Pets { get; set; }
-        public CarpetStyle Style { get; set; }
+        public CarpetStyleEnum Style { get; set; }
         public int Budget { get; set; }
         public bool Hardwearing { get; set; }
         public bool SkipSearchParameters { get; set; }

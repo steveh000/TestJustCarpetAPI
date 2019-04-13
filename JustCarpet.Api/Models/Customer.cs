@@ -1,25 +1,22 @@
-﻿using System;
+﻿using JustCarpet.Api.Models.Orders;
+using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace TestJustCarpetAPI.Models
+namespace JustCarpet.Api.Models
 {
     public class Customer
     {
-        [DataMember(Name = "id")]
+        [JsonProperty("id")]
         public int Id { get; set; }
-        [DataMember(Name = "name")]
+        [JsonProperty("name")]
         public string Name { get; set; }
-        [DataMember(Name = "address")]
+        [JsonProperty("address")]
         public string Address { get; set; }
-        [DataMember(Name = "telephone")]
+        [JsonProperty("telephone")]
         public string TelephoneNumber { get; set; }
-        [DataMember(Name = "emailaddress")]
+        [JsonProperty("emailaddress")]
         public string EmailAddress { get; set; }
-        [DataMember(Name = "macaddress")]
+        [JsonProperty("macaddress")]
         public string MacAddress { get; set; }
 
         public List<Order> Orders = new List<Order>();
