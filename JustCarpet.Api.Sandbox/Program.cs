@@ -1,10 +1,12 @@
-﻿using System;
+﻿using JustCarpet.Api;
+using JustCarpet.Api.Models;
+using JustCarpet.Api.Models.Flooring;
+using JustCarpet.Api.Models.Orders;
+using Serilog;
+using Serilog.Sinks.SystemConsole.Themes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-using TestJustCarpetAPI.Models;
 
 namespace TestJustCarpetAPI
 {
@@ -13,14 +15,18 @@ namespace TestJustCarpetAPI
         
         static void Main(string[] args)
         {
-            Console.WriteLine("Welcome - Press any key to start tests");
-            Console.ReadKey();
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.Console(theme: AnsiConsoleTheme.Code)
+                .CreateLogger();
 
-            JustCarpetClient client = new JustCarpetClient();
+            Log.Information("Welcome - Press any key to start tests");
+            Console.ReadKey();
+            
+            IJustCarpetClient client = new JustCarpetClient(Log.Logger, clientType: JustCarpet.Api.Enums.ClientTypeEnum.Live);
             var customerAccount = client.Register("testMacAddress001").Result;
 
-            Console.WriteLine("Found Customer Account id " + customerAccount.Id);
-            Console.WriteLine("Update Customer account ? Press any key");
+            Log.Information("Found Customer Account id {@id}", customerAccount.Id);
+            Log.Information("Update Customer account ? Press any key");
             Console.ReadKey();
 
             customerAccount.Name = "Steve Heasman";
@@ -31,52 +37,52 @@ namespace TestJustCarpetAPI
 
             if (complete)
             {
-                Console.WriteLine("Account has been sucesfully updated");
+                Log.Information("Account has been sucesfully updated");
             }
             else
             {
-                Console.WriteLine("Account not updates error");
+                Log.Information("Account not updates error");
             }
 
-            Console.WriteLine("Customer methods tested.");
+            Log.Information("Customer methods tested.");
 
-            Console.WriteLine("Press any key to search for flooring without search");
+            Log.Information("Press any key to search for flooring without search");
             Console.ReadKey();
 
             List<Flooring> flooringb = client.Search(new Search() {SkipSearchParameters = true}).Result;
-            Console.WriteLine("flooring returned  " + flooringb.Count + " Press any key to continue with parameters Pet Friendly");
+            Log.Information("flooring returned  {@Count}. Press any key to continue with parameters Pet Friendly", flooringb.Count);
 
             Console.ReadKey();
 
             //List<Flooring> flooringb = client.Search(new Search() { SkipSearchParameters = false, Pets = true}).Result;
-            //Console.WriteLine("flooring returned  " + flooringb.Count + " Press any key to continue Find installers");
+            //Log.Information("flooring returned  " + flooringb.Count + " Press any key to continue Find installers");
             try
             {
-                Console.WriteLine("Geting flooring details");
+                Log.Information("Geting flooring details");
                 Flooring floor = client.GetFlooringDetails(flooringb.First().Id).Result;
 
                 if (floor != null)
                 {
-                    Console.WriteLine("Details ");
-                    Console.WriteLine("Name : " + floor.Name);
-                    Console.WriteLine("Desc " + floor.Description);
+                    Log.Information("Details ");
+                    Log.Information("Name : {@Name}", floor.Name);
+                    Log.Information("Desc : {@Desc}", floor.Description);
                     foreach (var prop in floor.Properties)
                     {
-                        Console.WriteLine(prop);
+                        Log.Information(prop);
                     }
                 }
                 else
                 {
-                    Console.WriteLine("No details returned");
+                    Log.Information("No details returned");
                 }
 
             }
             catch (Exception ex)
             {
-                Console.WriteLine("An Error has occured getting floor details,");
+                Log.Error("An Error has occured getting floor details '{@Error}'", ex.Message);
             }
 
-            Console.WriteLine("Press any key to continue testing.");
+            Log.Information("Press any key to continue testing.");
             Console.ReadKey();
 
 
@@ -85,18 +91,18 @@ namespace TestJustCarpetAPI
 
             List<Installer> installers = client.GetInstallers().Result;
 
-            Console.WriteLine("Installers returned " +installers.Count + " press any button to get available appointments for next seven days.");
+            Log.Information("Installers returned {@Count}. Press any button to get available appointments for next seven days.", installers.Count);
 
             Console.ReadKey();
 
-            Console.WriteLine("Getting Appointments for installer id " + installers.First().LocationId);
+            Log.Information("Getting Appointments for installer id " + installers.First().LocationId);
 
             var appointments = client.GetInstallerAppontments(installers.First().LocationId).Result;
 
-            Console.WriteLine("Appointmests are as follows");
+            Log.Information("Appointmests are as follows");
 
             if(appointments.Count == 0)
-                Console.WriteLine("That installer has no appointments ");
+                Log.Information("That installer has no appointments ");
 
             foreach (var date in appointments )
             {
@@ -111,18 +117,18 @@ namespace TestJustCarpetAPI
                     text += "on the afternoon  of " + date.Date;
                 }
 
-                Console.WriteLine(text);
+                Log.Information(text);
             }
 
-            Console.WriteLine("All appointments have been retured");
+            Log.Information("All appointments have been retured");
 
-            Console.WriteLine("Press any key to continue testing ordering");
+            Log.Information("Press any key to continue testing ordering");
 
             Console.ReadKey();
 
-            Console.WriteLine("We are now going to send an order to the API");
+            Log.Information("We are now going to send an order to the API");
 
-            Console.WriteLine("Order is for 7 days from today in the morning, with installer " + installers.First().Name);
+            Log.Information("Order is for 7 days from today in the morning, with installer {@Installer}", installers.First().Name);
 
             CreateOrderDto order = new CreateOrderDto()
             {
@@ -145,28 +151,28 @@ namespace TestJustCarpetAPI
 
             if (response.OrderSucess)
             {
-                Console.WriteLine("Order Sucessfull - Installer " + response.InstallerName + " will be at your property on " + response.InstallDate);
+                Log.Information("Order Sucessfull - Installer {@InstallerName} will be at your property on {@InstallationDate}", response.InstallerName, response.InstallDate);
             }
             else
             {
-                Console.WriteLine("Order failed ");
+                Log.Information("Order failed ");
             }
 
-            Console.WriteLine("Press any key to get your current orders - my account page");
+            Log.Information("Press any key to get your current orders - my account page");
             Console.ReadKey();
 
             var customer = client.Register("testMacAddress001").Result;
 
-            Console.WriteLine("Customer has " + customer.Orders.Count);
+            Log.Information("Customer has {@Count}", customer.Orders.Count);
 
             foreach (var o in customer.Orders)
             {
-                Console.WriteLine("Order " + o.OrderId + " with installer " + o.InstallerName + " on " + o.InstallerShortDateString );
+                Log.Information("Order {@Id} with installer {@Installer} on {@Date}", o.OrderId, o.InstallerName, o.InstallerShortDateString );
             }
 
 
 
-            Console.WriteLine("Semd Review to system for first order. press any key to continue ");
+            Log.Information("Semd Review to system for first order. press any key to continue ");
 
             var reviewResponse = client.AddOrderReview(new Review()
             {
@@ -179,14 +185,14 @@ namespace TestJustCarpetAPI
 
             if (reviewResponse)
             {
-                Console.WriteLine("Review has been accepted");
+                Log.Information("Review has been accepted");
             }
             else
             {
-                Console.WriteLine("Review Failed to upload");
+                Log.Information("Review Failed to upload");
             }
 
-            Console.WriteLine("Press any key to finish testing");
+            Log.Information("Press any key to finish testing");
 
             Console.ReadKey();
 
